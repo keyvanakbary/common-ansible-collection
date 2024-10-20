@@ -1,0 +1,13 @@
+- name: Read /boot/firmware/cmdline.txt
+  slurp:
+    src: /boot/firmware/cmdline.txt
+  register: cmdline_content
+  when: ansible_distribution == 'Debian' and ansible_architecture == 'armv7l' # Debian Raspberry PI
+
+- name: Ensure cgroup_enable=memory and swapaccount=1 are present
+  copy:
+    dest: /boot/firmware/cmdline.txt
+    content: "{{ cmdline_content['content'] | b64decode | regex_replace('cgroup_enable=memory|swapaccount=1', '') | trim }} cgroup_enable=memory swapaccount=1"
+    force: yes
+  notify: reboot
+  when: ansible_distribution == 'Debian' and ansible_architecture == 'armv7l' # Debian Raspberry PI

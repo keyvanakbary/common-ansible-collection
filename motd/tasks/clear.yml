@@ -1,0 +1,26 @@
+---
+- name: Remove static motd
+  file:
+    path: /etc/motd
+    state: absent
+
+- name: Find all dynamic motd files
+  find:
+    paths: /etc/update-motd.d
+    file_type: any
+  register: found_files
+
+- name: Remove dynamic motd files except the ones that will be used
+  file:
+    path: "{{ item.path }}"
+    state: absent
+  loop: "{{ found_files.files }}"
+  when: item.path | basename not in ['10-welcome', '15-system', '20-update']
+
+- name: Disable last login message
+  lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '^#?PrintLastLog'
+    line: 'PrintLastLog no'
+    state: present
+  notify: restart sshd

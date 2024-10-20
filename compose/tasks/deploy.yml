@@ -1,0 +1,62 @@
+---
+
+- name: Create networks
+  docker_network:
+    name: "{{ item }}"
+    driver: overlay
+    attachable: no
+    state: present
+  loop: "{{ compose_networks }}"
+
+- name: Ensure stack directory exists on remote host
+  file:
+    path: "{{ compose_deploy_path }}"
+    state: directory
+
+- name: Find all files in the config directory
+  delegate_to: localhost
+  find:
+    paths: "{{ compose_config_path }}"
+    recurse: yes
+    file_type: file
+  register: config_files
+  when: compose_config_path is not none
+
+- name: Generate hash for each file
+  set_fact:
+    config_data: "{{ config_data | default({}) | combine({ file_key: { 'path': file_path, 'data': file_content, 'hash_name': compose_stack + '_' + file_hash[:8] } }) }}"
+  loop: "{{ config_files.files }}"
+  loop_control:
+    label: "{{ item.path }}"
+  vars:
+    file_content: "{{ lookup('file', item.path) | string }}"
+    file_hash: "{{ file_content | md5 }}"
+    file_basename: "{{ item.path | basename | splitext | first }}"
+    file_path: "{{ item.path | regex_replace('^.*/config/', '') }}"
+    file_directory: "{{ file_path | dirname | regex_replace('/', '_') }}"  # Get directory path relative to 'config'
+    file_key: "{{ (file_directory | length > 0) | ternary(file_directory + '_' + file_basename, file_basename) }}_config"  # Use directory part if not empty
+  delegate_to: localhost
+  when: compose_config_path is not none
+
+- name: Create Docker configs
+  docker_config:
+    name: "{{ item.value.hash_name }}"
+    data: "{{ item.value.data | string }}"
+  with_dict: "{{ config_data }}"
+  loop_control:
+    label: "{{ item.key }}=>{{ item.value.hash_name }}"
+  register: docker_config_result
+  when: compose_config_path is not none
+
+- name: Render the docker-compose template with hashed configs
+  template:
+    src: "{{ compose_file_path }}"
+    dest: "{{ compose_deploy_path }}/docker-compose.yml"
+
+- name: Deploy stack
+  docker_stack:
+    state: present
+    name: "{{ compose_stack }}"
+    prune: true
+    compose:
+      - "{{ compose_deploy_path }}/docker-compose.yml"

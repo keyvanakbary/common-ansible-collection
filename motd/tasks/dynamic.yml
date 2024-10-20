@@ -1,0 +1,27 @@
+---
+- name: Copy service unit file to systemd
+  copy:
+    src: service/motd-update.service
+    dest: /etc/systemd/system/motd-update.service
+    mode: '0644'
+
+- name: Copy timer unit file to systemd
+  copy:
+    src: service/motd-update.timer
+    dest: /etc/systemd/system/motd-update.timer
+    mode: '0644'
+
+- name: Reload systemd daemon to recognize new units
+  systemd:
+    daemon_reload: yes
+
+- name: Enable and start the custom service timer
+  systemd:
+    name: motd-update.timer
+    enabled: yes
+    state: started
+
+- name: Generate static motd for the first time
+  systemd:
+    name: motd-update.service
+    state: started

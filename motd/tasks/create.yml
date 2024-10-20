@@ -1,0 +1,21 @@
+---
+- name: Copy dynamic motd scripts
+  copy:
+    src: "{{ item }}"
+    dest: /etc/update-motd.d/
+    mode: '0755'
+  with_fileglob:
+    - update-motd.d/*
+
+- name: Ensure /etc/update-motd-static.d directory exists
+  file:
+    path: /etc/update-motd-static.d
+    state: directory
+
+- name: Copy update static motd scripts
+  copy:
+    src: "{{ item }}"
+    dest: /etc/update-motd-static.d/
+    mode: '0755'
+  with_fileglob:
+    - update-motd-static.d/*

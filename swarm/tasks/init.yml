@@ -1,0 +1,16 @@
+---
+- name: Check if Swarm is already initialized
+  command: docker info --format '{{ "{{ .Swarm.LocalNodeState }}" }}'
+  register: swarm_status
+  changed_when: false
+  failed_when: swarm_status.rc != 0 and "inactive" not in swarm_status.stdout
+
+- name: Initialize Swarm on manager
+  command: docker swarm init --advertise-addr {{ ansible_default_ipv4.address }}
+  register: swarm_init_output
+  when: swarm_status.stdout == "inactive"
+
+- name: Get Swarm token on manager
+  shell: docker swarm join-token -q manager
+  register: token
+  changed_when: false

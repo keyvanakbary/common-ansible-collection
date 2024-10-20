@@ -1,0 +1,3 @@
+swarm_group: swarm
+swarm_manager: "{{ groups[swarm_group][0] }}"
+swarm_workers: "{{ groups[swarm_group][1:] }}"

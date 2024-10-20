@@ -1,0 +1,26 @@
+---
+- name: Get all Docker configs
+  command: docker config ls --filter "name={{ compose_stack }}_" --format "{{ '{{.Name}}' }}"
+  register: all_configs_raw
+  changed_when: false
+
+- name: Get all Docker services and their configs
+  shell: docker service ls --filter "name={{ compose_stack }}_" -q | xargs -n 1 docker service inspect --format "{{ '{{json .Spec.TaskTemplate.ContainerSpec.Configs}}' }}"
+  register: service_configs_raw
+  changed_when: false
+
+- name: Set fact for all Docker configs
+  set_fact:
+    all_configs: "{{ all_configs_raw.stdout_lines }}"
+
+- name: Extract used config names from services
+  set_fact:
+    used_configs: "{{ service_configs_raw.stdout | regex_findall('\"ConfigName\":\"([^\"]+)\"') }}"
+
+- name: Remove unused Docker configs
+  docker_config:
+    name: "{{ item }}"
+    state: absent
+  loop: "{{ all_configs }}"
+  when: item not in used_configs
+

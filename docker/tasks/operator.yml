@@ -1,0 +1,12 @@
+- name: Ensure the operator user is present
+  user:
+    name: "{{ docker_operator }}"
+    shell: /bin/bash
+    create_home: yes
+    groups: "docker"
+
+- name: Ensure SSH key is present in authorized_keys
+  authorized_key:
+    user: "{{ docker_operator }}"
+    state: present
+    key: "{{ lookup('file', '/keys/admin.pub') }}"

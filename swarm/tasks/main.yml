@@ -1,0 +1,8 @@
+---
+- name: Initialize Swarm
+  when: inventory_hostname == swarm_manager
+  import_tasks: init.yml
+
+- name: Join Swarm nodes
+  when: inventory_hostname in swarm_workers
+  import_tasks: join.yml

@@ -1,0 +1,8 @@
+docker_config:
+  log-driver: "json-file"
+  log-opts:
+    labels-regex: "^.+"
+    max-size: "10m"
+    max-file: "3"
+
+docker_operator: operator

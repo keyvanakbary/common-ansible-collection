@@ -1,0 +1,9 @@
+---
+- name: Deploy monitoring
+  import_tasks: deploy.yml
+  when: inventory_hostname == compose_swarm_manager
+
+- name: Remove unused configs in stack
+  import_tasks: clean.yml
+  when: inventory_hostname == compose_swarm_manager
+

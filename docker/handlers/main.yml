@@ -1,0 +1,11 @@
+---
+- name: reboot
+  reboot:
+    msg: "Rebooting to apply settings"
+    connect_timeout: 5
+    reboot_timeout: 300
+
+- name: restart docker
+  service:
+    name: docker
+    state: restarted

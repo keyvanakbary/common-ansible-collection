@@ -1,0 +1,7 @@
+compose_swarm_group: swarm
+compose_swarm_manager: "{{ groups[compose_swarm_group][0] }}"
+compose_stack: stack
+compose_config_path: null
+compose_deploy_path: "/home/operator/stack"
+compose_file_path: "../templates/swarm/stack/docker-compose.yml.j2"
+compose_networks: null

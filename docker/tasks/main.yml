@@ -1,0 +1,13 @@
+---
+- name: Disable swap
+  import_tasks: swap.yml
+
+- name: Configure CGroups
+  import_tasks: cgroups.yml
+
+- name: Install and configure Docker
+  import_tasks: install.yml
+
+- name: Configure operator user
+  import_tasks: operator.yml
+    

@@ -1,0 +1,11 @@
+---
+- name: Check if the node is already part of a Swarm
+  command: docker info --format '{{ "{{ .Swarm.LocalNodeState }}" }}'
+  register: swarm_status
+  changed_when: false
+
+- name: Join the Swarm
+  shell: docker swarm join --token {{ hostvars[swarm_manager].token.stdout }} {{ hostvars[swarm_manager].ansible_default_ipv4.address }}:2377
+  when: swarm_status.stdout == "inactive"
+  register: join_swarm
+  changed_when: join_swarm.rc == 0
