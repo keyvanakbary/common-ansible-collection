@@ -58,5 +58,6 @@
     state: present
     name: "{{ compose_stack }}"
     prune: true
+    with_registry_auth: true
     compose:
       - "{{ compose_deploy_path }}/docker-compose.yml"
