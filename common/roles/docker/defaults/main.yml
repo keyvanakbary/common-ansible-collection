@@ -6,4 +6,4 @@ docker_config:
     max-file: "3"
 
 docker_operator: operator
-docker_operator_key_path: /keys/admin.pub
+docker_operator_public_key_file: /keys/operator.pub
