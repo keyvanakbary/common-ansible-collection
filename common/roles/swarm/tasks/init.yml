@@ -3,12 +3,28 @@
   command: docker info --format '{{ "{{ .Swarm.LocalNodeState }}" }}'
   register: swarm_status
   changed_when: false
-  failed_when: swarm_status.rc != 0 and "inactive" not in swarm_status.stdout
+  failed_when: swarm_status.rc != 0 and "inactive" not in swarm_status.stdout and "error" not in swarm_status.stdout
+
+- name: Leave Swarm forcefully if in error state
+  command: docker swarm leave --force
+  when: swarm_status.stdout == "error"
+
+- name: Remove expired certificates
+  file:
+    path: /var/lib/docker/swarm/certificates
+    state: absent
+  when: swarm_status.stdout == "error"
+
+- name: Restart Docker to regenerate certificates
+  systemd:
+    name: docker
+    state: restarted
+  when: swarm_status.stdout == "error"
 
 - name: Initialize Swarm on manager
   command: docker swarm init --advertise-addr {{ ansible_default_ipv4.address }}
   register: swarm_init_output
-  when: swarm_status.stdout == "inactive"
+  when: swarm_status.stdout in ["inactive", "error"]
 
 - name: Get Swarm token on manager
   shell: docker swarm join-token -q manager
