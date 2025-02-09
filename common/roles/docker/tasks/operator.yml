@@ -9,4 +9,4 @@
   authorized_key:
     user: "{{ docker_operator }}"
     state: present
-    key: "{{ lookup('file', '/keys/admin.pub') }}"
+    key: "{{ lookup('file', docker_operator_key_path) }}"
