@@ -4,8 +4,12 @@
   register: swarm_status
   changed_when: false
 
+- name: Leave pending Swarm
+  shell: docker swarm leave
+  when: swarm_status.stdout == "pending"
+
 - name: Join the Swarm
   shell: docker swarm join --token {{ hostvars[swarm_manager].token.stdout }} {{ hostvars[swarm_manager].ansible_default_ipv4.address }}:2377
-  when: swarm_status.stdout in ["inactive", "pending"]
+  when: swarm_status.stdout == "inactive"
   register: join_swarm
   changed_when: join_swarm.rc == 0
