@@ -5,7 +5,7 @@
   changed_when: false
 
 - name: Leave pending Swarm
-  shell: docker swarm leave
+  command: docker swarm leave
   when: swarm_status.stdout == "pending"
 
 - name: Join the Swarm
